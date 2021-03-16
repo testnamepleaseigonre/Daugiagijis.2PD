@@ -33,6 +33,8 @@ namespace Daugiagijis._2PD
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.EncryptButton = new System.Windows.Forms.Button();
+            this.ChooseDirectoryButton = new System.Windows.Forms.Button();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // PathTextBox
@@ -69,12 +71,32 @@ namespace Daugiagijis._2PD
             this.EncryptButton.TabIndex = 3;
             this.EncryptButton.Text = "Encrypt";
             this.EncryptButton.UseVisualStyleBackColor = true;
+            this.EncryptButton.Click += new System.EventHandler(this.EncryptButton_Click);
+            // 
+            // ChooseDirectoryButton
+            // 
+            this.ChooseDirectoryButton.Location = new System.Drawing.Point(179, 101);
+            this.ChooseDirectoryButton.Name = "ChooseDirectoryButton";
+            this.ChooseDirectoryButton.Size = new System.Drawing.Size(99, 23);
+            this.ChooseDirectoryButton.TabIndex = 4;
+            this.ChooseDirectoryButton.Text = "Choose directory";
+            this.ChooseDirectoryButton.UseVisualStyleBackColor = true;
+            this.ChooseDirectoryButton.Click += new System.EventHandler(this.ChooseDirectoryButton_Click);
+            // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(45, 134);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(314, 23);
+            this.progressBar.TabIndex = 5;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(411, 166);
+            this.ClientSize = new System.Drawing.Size(416, 181);
+            this.Controls.Add(this.progressBar);
+            this.Controls.Add(this.ChooseDirectoryButton);
             this.Controls.Add(this.EncryptButton);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -92,6 +114,8 @@ namespace Daugiagijis._2PD
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button EncryptButton;
+        private System.Windows.Forms.Button ChooseDirectoryButton;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
 
