@@ -35,6 +35,7 @@ namespace Daugiagijis._2PD
             this.EncryptButton = new System.Windows.Forms.Button();
             this.ChooseDirectoryButton = new System.Windows.Forms.Button();
             this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.DecryptButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // PathTextBox
@@ -75,7 +76,7 @@ namespace Daugiagijis._2PD
             // 
             // ChooseDirectoryButton
             // 
-            this.ChooseDirectoryButton.Location = new System.Drawing.Point(179, 101);
+            this.ChooseDirectoryButton.Location = new System.Drawing.Point(98, 101);
             this.ChooseDirectoryButton.Name = "ChooseDirectoryButton";
             this.ChooseDirectoryButton.Size = new System.Drawing.Size(99, 23);
             this.ChooseDirectoryButton.TabIndex = 4;
@@ -85,16 +86,27 @@ namespace Daugiagijis._2PD
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(45, 134);
+            this.progressBar.Location = new System.Drawing.Point(45, 46);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(314, 23);
             this.progressBar.TabIndex = 5;
+            // 
+            // DecryptButton
+            // 
+            this.DecryptButton.Location = new System.Drawing.Point(203, 101);
+            this.DecryptButton.Name = "DecryptButton";
+            this.DecryptButton.Size = new System.Drawing.Size(75, 23);
+            this.DecryptButton.TabIndex = 6;
+            this.DecryptButton.Text = "Decrypt";
+            this.DecryptButton.UseVisualStyleBackColor = true;
+            this.DecryptButton.Click += new System.EventHandler(this.DecryptButton_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(416, 181);
+            this.ClientSize = new System.Drawing.Size(388, 150);
+            this.Controls.Add(this.DecryptButton);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.ChooseDirectoryButton);
             this.Controls.Add(this.EncryptButton);
@@ -116,6 +128,7 @@ namespace Daugiagijis._2PD
         private System.Windows.Forms.Button EncryptButton;
         private System.Windows.Forms.Button ChooseDirectoryButton;
         private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.Button DecryptButton;
     }
 }
 
