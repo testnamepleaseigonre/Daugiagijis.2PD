@@ -16,6 +16,9 @@ namespace Daugiagijis._2PD
         private List<string> hashListOfEncrypted = new List<string>();
         private List<string> hashListOfDecrypted = new List<string>();
         private ManualResetEvent mre = new ManualResetEvent(true);
+        private CancellationTokenSource cts;
+        private string actionString = null;
+        private string selectedPath;
 
         public Form1()
         {
@@ -42,8 +45,11 @@ namespace Daugiagijis._2PD
             }
             else
             {
-                string path = PathTextBox.Text;
-                Thread th1 = new Thread(() => encryptThread(path));
+                actionString = "Encryption";
+                selectedPath = PathTextBox.Text;
+                cts = new CancellationTokenSource();
+                CancellationToken ct = cts.Token;
+                Thread th1 = new Thread(() => encryptThread(selectedPath, ct));
                 th1.Name = "Encryption thread";
                 th1.Start();
                 //Thread th2 = new Thread(() => progressFunc(th1));
@@ -54,14 +60,21 @@ namespace Daugiagijis._2PD
 
         private void progressFunc()
         {
-            Invoke((Action)delegate
+            try
             {
-                progressBar.PerformStep();
-            });
-            //Thread.Sleep(1000);
+                Invoke((Action)delegate
+                {
+                    progressBar.PerformStep();
+                });
+                Thread.Sleep(1000);
+            }
+            catch
+            {
+
+            }
         }
 
-        private void encryptThread(string path)
+        private void encryptThread(string path, CancellationToken ct)
         {
             setParametersToWork();
             try
@@ -71,7 +84,7 @@ namespace Daugiagijis._2PD
                 {
                     progressBar.Maximum = barLenght;
                 });
-                encryptionFunc(path);
+                encryptionFunc(path, ct);
             }
             catch (Exception exc)
             {
@@ -80,7 +93,7 @@ namespace Daugiagijis._2PD
             }
         }
 
-        private void encryptionFunc(string path)
+        private void encryptionFunc(string path, CancellationToken ct)
         {
             Console.WriteLine($"{Thread.CurrentThread.Name} started.");
             try
@@ -89,6 +102,10 @@ namespace Daugiagijis._2PD
                 foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     mre.WaitOne();
+                    if(ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     ZipFile.CreateFromDirectory(dir, dir + ".zip");
                     Directory.Delete(dir, recursive: true);
                     Console.WriteLine($"Directory zipped: {dir}");
@@ -97,8 +114,11 @@ namespace Daugiagijis._2PD
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     mre.WaitOne();
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     encryptFile(file);
-                    File.Delete(file);
                     Thread th2 = new Thread(() => progressFunc());
                     th2.Name = "Progress thread";
                     th2.Start();
@@ -108,6 +128,10 @@ namespace Daugiagijis._2PD
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     mre.WaitOne();
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     string hashLine = fileHash(file);
                     hashListOfEncrypted.Add(hashLine);
                 }
@@ -128,6 +152,54 @@ namespace Daugiagijis._2PD
                 Console.WriteLine($"{Thread.CurrentThread.Name} ended.");
                 throw new Exception(exc.Message);
             }
+        }
+
+        private void EncryptionCancellationMethod(string path)
+        {
+            Thread th = new Thread(() =>
+            {
+                Console.WriteLine("Canceling...");
+                foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (Path.GetExtension(file) == ".aes")
+                    {
+                        decryptFile(file);
+                    }
+                }
+                foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (Path.GetExtension(file) == ".zip")
+                    {
+                        unzipFolder(file, Path.GetFileNameWithoutExtension(file), Path.GetDirectoryName(file));
+                    }
+                }
+                Console.WriteLine("Cancelled!");
+            });
+            th.Name = "Cancellation thread";
+            th.Start();
+        }
+
+        private void DecryptionCancellationMethod(string path)
+        {
+            Thread th = new Thread(() =>
+            {
+                Console.WriteLine("Canceling...");
+                foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
+                {
+                    ZipFile.CreateFromDirectory(dir, dir + ".zip");
+                    Directory.Delete(dir, recursive: true);
+                }
+                foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
+                {
+                    if (Path.GetExtension(file) != ".aes")
+                    {
+                        encryptFile(file);
+                    }
+                }
+                Console.WriteLine("Cancelled!");
+            });
+            th.Name = "Cancellation thread";
+            th.Start();
         }
 
         private string fileHash(string path)
@@ -160,6 +232,7 @@ namespace Daugiagijis._2PD
                     encryptedFileBytes = ms.ToArray();
                 }
                 File.WriteAllBytes($"{file}.aes", encryptedFileBytes);
+                File.Delete(file);
             }
             Console.WriteLine($"File encrypted: {file}");
         }
@@ -217,8 +290,11 @@ namespace Daugiagijis._2PD
             }
             else
             {
-                string path = PathTextBox.Text;
-                Thread th1 = new Thread(() => decryptThread(path));
+                actionString = "Decryption";
+                selectedPath = PathTextBox.Text;
+                cts = new CancellationTokenSource();
+                CancellationToken ct = cts.Token;
+                Thread th1 = new Thread(() => decryptThread(selectedPath, ct));
                 th1.Name = "Decryption thread";
                 th1.Start();
                 //Thread th2 = new Thread(() => progressFunc(th1));
@@ -227,7 +303,7 @@ namespace Daugiagijis._2PD
             }
         }
 
-        private void decryptThread(string path)
+        private void decryptThread(string path, CancellationToken ct)
         {
             setParametersToWork();
             try
@@ -238,7 +314,7 @@ namespace Daugiagijis._2PD
                     progressBar.Maximum = barLenght;
                 });
                 getHashListOfDecrypted(path);
-                decryptionFunc(path);
+                decryptionFunc(path, ct);
             }
             catch (Exception exc)
             {
@@ -269,7 +345,7 @@ namespace Daugiagijis._2PD
             }
         }
 
-        private void decryptionFunc(string path)
+        private void decryptionFunc(string path, CancellationToken ct)
         {
             try
             {
@@ -278,13 +354,16 @@ namespace Daugiagijis._2PD
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     mre.WaitOne();
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     string hash = fileHash(file);
                     foreach (string hashString in hashListOfDecrypted)
                     {
                         if (hash == hashString)
                         {
                             decryptFile(file);
-                            
                         }
                     }
                     Thread th2 = new Thread(() => progressFunc());
@@ -355,6 +434,38 @@ namespace Daugiagijis._2PD
 
         private void ContinueButton_Click(object sender, EventArgs e)
         {
+            mre.Set();
+        }
+
+        private void StopButton_Click(object sender, EventArgs e)
+        {
+            mre.Reset();
+            if(actionString == "Encryption")
+            {
+                DialogResult result = MessageBox.Show($"Do you really want to abort Encryption?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    cts.Cancel();
+                    mre.Set();
+                    EncryptionCancellationMethod(selectedPath);
+                    setParametersToWork();
+                    resetParameters();
+                    MessageBox.Show("Encryption aborted!");
+                }
+            }
+            else
+            {
+                DialogResult result = MessageBox.Show($"Do you really want to abort Decryption?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    cts.Cancel();
+                    mre.Set();
+                    DecryptionCancellationMethod(selectedPath);
+                    setParametersToWork();
+                    resetParameters();
+                    MessageBox.Show("Decryption aborted!");
+                }
+            }
             mre.Set();
         }
     }

@@ -137,6 +137,7 @@ namespace Daugiagijis._2PD
             this.StopButton.TabIndex = 9;
             this.StopButton.Text = "Stop";
             this.StopButton.UseVisualStyleBackColor = true;
+            this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
             // 
             // Form1
             // 
