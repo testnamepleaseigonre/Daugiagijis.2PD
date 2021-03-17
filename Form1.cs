@@ -15,8 +15,7 @@ namespace Daugiagijis._2PD
         byte[] IV_Value = Encoding.ASCII.GetBytes("<>?:{}|ASDJNGHFY");
         private List<string> hashListOfEncrypted = new List<string>();
         private List<string> hashListOfDecrypted = new List<string>();
-
-        private int barLenght = 0;
+        private ManualResetEvent mre = new ManualResetEvent(true);
 
         public Form1()
         {
@@ -47,16 +46,27 @@ namespace Daugiagijis._2PD
                 Thread th1 = new Thread(() => encryptThread(path));
                 th1.Name = "Encryption thread";
                 th1.Start();
+                //Thread th2 = new Thread(() => progressFunc(th1));
+                //th2.Name = "Progress thread";
+                //th2.Start();
             }
+        }
+
+        private void progressFunc()
+        {
+            Invoke((Action)delegate
+            {
+                progressBar.PerformStep();
+            });
+            //Thread.Sleep(1000);
         }
 
         private void encryptThread(string path)
         {
-            resetParameters();
+            setParametersToWork();
             try
             {
-                countProgressBarLenght(path);
-                //Console.WriteLine(barLenght);
+                int barLenght = countProgressBarLenght(path);
                 Invoke((Action)delegate
                 {
                     progressBar.Maximum = barLenght;
@@ -65,36 +75,43 @@ namespace Daugiagijis._2PD
             }
             catch (Exception exc)
             {
+                resetParameters();
                 MessageBox.Show(exc.Message);
             }
         }
 
         private void encryptionFunc(string path)
         {
+            Console.WriteLine($"{Thread.CurrentThread.Name} started.");
             try
             {
                 //Archive folders
                 foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
                 {
+                    mre.WaitOne();
                     ZipFile.CreateFromDirectory(dir, dir + ".zip");
                     Directory.Delete(dir, recursive: true);
+                    Console.WriteLine($"Directory zipped: {dir}");
                 }
-                //encrypt files
+                //Encrypt files
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
-                    //progressbarIncrease++;
-                    //mre.WaitOne();
-                    //Thread.Sleep(300);
+                    mre.WaitOne();
                     encryptFile(file);
                     File.Delete(file);
+                    Thread th2 = new Thread(() => progressFunc());
+                    th2.Name = "Progress thread";
+                    th2.Start();
+                    th2.Join();
                 }
-                //get hash values
+                //Get hash values
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
+                    mre.WaitOne();
                     string hashLine = fileHash(file);
                     hashListOfEncrypted.Add(hashLine);
                 }
-                //write hash values to file
+                //Write hash values to file
                 using (StreamWriter sw = File.AppendText($"{path.GetHashCode()}.txt"))
                 {
                     foreach (String hash in hashListOfEncrypted)
@@ -102,10 +119,13 @@ namespace Daugiagijis._2PD
                         sw.WriteLine(hash);
                     }
                 }
+                resetParameters();
                 MessageBox.Show("Files sucessfully encrytped!");
+                Console.WriteLine($"{Thread.CurrentThread.Name} ended.");
             }
             catch (Exception exc)
             {
+                Console.WriteLine($"{Thread.CurrentThread.Name} ended.");
                 throw new Exception(exc.Message);
             }
         }
@@ -117,7 +137,6 @@ namespace Daugiagijis._2PD
                 using (var fileStream = File.OpenRead(path))
                 {
                     var hash = md5.ComputeHash(fileStream);
-                    //Console.WriteLine(fileHash);
                     return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
                 }
             }
@@ -142,26 +161,47 @@ namespace Daugiagijis._2PD
                 }
                 File.WriteAllBytes($"{file}.aes", encryptedFileBytes);
             }
+            Console.WriteLine($"File encrypted: {file}");
+        }
+
+        private void setParametersToWork()
+        {
+            hashListOfEncrypted.Clear();
+            hashListOfDecrypted.Clear();
+            Invoke((Action)delegate
+            {
+                progressBar.Value = 0;
+                PauseButton.Enabled = true;
+                ContinueButton.Enabled = true;
+                StopButton.Enabled = true;
+            });
         }
 
         private void resetParameters()
         {
-            barLenght = 0;
-            progressBar.Value = 0;
-            hashListOfEncrypted.Clear();
-            hashListOfDecrypted.Clear();
+            Invoke((Action)delegate
+            {
+                PauseButton.Enabled = false;
+                ContinueButton.Enabled = false;
+                StopButton.Enabled = false;
+            });
         }
 
-        private void countProgressBarLenght(string path)
+        private int countProgressBarLenght(string path)
         {
             try
             {
-                foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.AllDirectories))
+                int result = 0;
+                foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
                 {
-                    //countProgressBarLenght(dir);
-                    barLenght++;
+                    result++;
                 }
-
+                foreach(string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
+                {
+                    result++;
+                }
+                Console.WriteLine($"Bar lenght: {result}");
+                return result;
             }
             catch (UnauthorizedAccessException exc)
             {
@@ -181,16 +221,18 @@ namespace Daugiagijis._2PD
                 Thread th1 = new Thread(() => decryptThread(path));
                 th1.Name = "Decryption thread";
                 th1.Start();
+                //Thread th2 = new Thread(() => progressFunc(th1));
+                //th2.Name = "Progress thread";
+                //th2.Start();
             }
         }
 
         private void decryptThread(string path)
         {
-            resetParameters();
+            setParametersToWork();
             try
             {
-                countProgressBarLenght(path);
-                Console.WriteLine(barLenght);
+                int barLenght = countProgressBarLenght(path);
                 Invoke((Action)delegate
                 {
                     progressBar.Maximum = barLenght;
@@ -200,9 +242,11 @@ namespace Daugiagijis._2PD
             }
             catch (Exception exc)
             {
+                resetParameters();
                 MessageBox.Show(exc.Message);
             }
         }
+
         private void getHashListOfDecrypted(string path)
         {
             try
@@ -216,7 +260,7 @@ namespace Daugiagijis._2PD
                 }
                 else
                 {
-                    throw new Exception("No MD5 Hash values found!");
+                    throw new Exception("No file with MD5 Hash values found!");
                 }
             }
             catch (Exception exc)
@@ -224,39 +268,53 @@ namespace Daugiagijis._2PD
                 throw new Exception(exc.Message);
             }
         }
+
         private void decryptionFunc(string path)
         {
             try
             {
+                Console.WriteLine($"{Thread.CurrentThread.Name} started.");
+                //Decrypt files
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
+                    mre.WaitOne();
                     string hash = fileHash(file);
                     foreach (string hashString in hashListOfDecrypted)
                     {
                         if (hash == hashString)
                         {
                             decryptFile(file);
+                            
                         }
                     }
+                    Thread th2 = new Thread(() => progressFunc());
+                    th2.Name = "Progress thread";
+                    th2.Start();
+                    th2.Join();
                 }
-                //unzip folders
+                //Unzip folders
                 foreach (string file in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
                 {
+                    mre.WaitOne();
                     if (Path.GetExtension(file) == ".zip")
                     {
                         unzipFolder(file, Path.GetFileNameWithoutExtension(file), Path.GetDirectoryName(file));
                     }
                 }
-                // delete hash file
+                // Delete hash file
                 if (File.Exists($"{path.GetHashCode()}.txt"))
                 {
+                    mre.WaitOne();
                     File.Delete($"{path.GetHashCode()}.txt");
                     Console.WriteLine($"Hash file deleted!");
                 }
+                resetParameters();
                 MessageBox.Show("Files successfully decrypted!");
+                Console.WriteLine($"{Thread.CurrentThread.Name} ended.");
             }
             catch (Exception exc)
             {
+                Console.WriteLine($"{Thread.CurrentThread.Name} ended.");
                 throw new Exception(exc.Message);
             }
         }
@@ -285,10 +343,19 @@ namespace Daugiagijis._2PD
                     File.WriteAllBytes(file, memStream.ToArray());
                     string withoutExtension = Path.ChangeExtension(file, null);
                     File.Move(file, withoutExtension);
-
-                    Console.WriteLine($"Decrypted success: {file}");
+                    Console.WriteLine($"File decrypted: {file}");
                 }
             }
+        }
+
+        private void PauseButton_Click(object sender, EventArgs e)
+        {
+            mre.Reset();
+        }
+
+        private void ContinueButton_Click(object sender, EventArgs e)
+        {
+            mre.Set();
         }
     }
 }

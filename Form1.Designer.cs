@@ -36,11 +36,14 @@ namespace Daugiagijis._2PD
             this.ChooseDirectoryButton = new System.Windows.Forms.Button();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.DecryptButton = new System.Windows.Forms.Button();
+            this.PauseButton = new System.Windows.Forms.Button();
+            this.ContinueButton = new System.Windows.Forms.Button();
+            this.StopButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // PathTextBox
             // 
-            this.PathTextBox.Location = new System.Drawing.Point(45, 75);
+            this.PathTextBox.Location = new System.Drawing.Point(45, 46);
             this.PathTextBox.Name = "PathTextBox";
             this.PathTextBox.Size = new System.Drawing.Size(314, 20);
             this.PathTextBox.TabIndex = 0;
@@ -48,7 +51,7 @@ namespace Daugiagijis._2PD
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 78);
+            this.label1.Location = new System.Drawing.Point(12, 49);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(32, 13);
             this.label1.TabIndex = 1;
@@ -86,7 +89,7 @@ namespace Daugiagijis._2PD
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(45, 46);
+            this.progressBar.Location = new System.Drawing.Point(45, 72);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(314, 23);
             this.progressBar.TabIndex = 5;
@@ -101,11 +104,48 @@ namespace Daugiagijis._2PD
             this.DecryptButton.UseVisualStyleBackColor = true;
             this.DecryptButton.Click += new System.EventHandler(this.DecryptButton_Click);
             // 
+            // PauseButton
+            // 
+            this.PauseButton.Enabled = false;
+            this.PauseButton.Location = new System.Drawing.Point(387, 41);
+            this.PauseButton.Name = "PauseButton";
+            this.PauseButton.Size = new System.Drawing.Size(75, 23);
+            this.PauseButton.TabIndex = 7;
+            this.PauseButton.Text = "Pause";
+            this.PauseButton.UseVisualStyleBackColor = true;
+            this.PauseButton.Click += new System.EventHandler(this.PauseButton_Click);
+            // 
+            // ContinueButton
+            // 
+            this.ContinueButton.Enabled = false;
+            this.ContinueButton.Location = new System.Drawing.Point(387, 68);
+            this.ContinueButton.Name = "ContinueButton";
+            this.ContinueButton.Size = new System.Drawing.Size(75, 23);
+            this.ContinueButton.TabIndex = 8;
+            this.ContinueButton.Text = "Continue";
+            this.ContinueButton.UseVisualStyleBackColor = true;
+            this.ContinueButton.Click += new System.EventHandler(this.ContinueButton_Click);
+            // 
+            // StopButton
+            // 
+            this.StopButton.BackColor = System.Drawing.SystemColors.Control;
+            this.StopButton.Enabled = false;
+            this.StopButton.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.StopButton.Location = new System.Drawing.Point(387, 96);
+            this.StopButton.Name = "StopButton";
+            this.StopButton.Size = new System.Drawing.Size(75, 23);
+            this.StopButton.TabIndex = 9;
+            this.StopButton.Text = "Stop";
+            this.StopButton.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(388, 150);
+            this.ClientSize = new System.Drawing.Size(521, 141);
+            this.Controls.Add(this.StopButton);
+            this.Controls.Add(this.ContinueButton);
+            this.Controls.Add(this.PauseButton);
             this.Controls.Add(this.DecryptButton);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.ChooseDirectoryButton);
@@ -129,6 +169,9 @@ namespace Daugiagijis._2PD
         private System.Windows.Forms.Button ChooseDirectoryButton;
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Button DecryptButton;
+        private System.Windows.Forms.Button PauseButton;
+        private System.Windows.Forms.Button ContinueButton;
+        private System.Windows.Forms.Button StopButton;
     }
 }
 
