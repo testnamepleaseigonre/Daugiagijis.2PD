@@ -66,11 +66,11 @@ namespace Daugiagijis._2PD
                 {
                     progressBar.PerformStep();
                 });
-                Thread.Sleep(1000);
+                //Thread.Sleep(1000);
             }
-            catch
+            catch(Exception exc)
             {
-
+                throw new Exception(exc.Message);
             }
         }
 
